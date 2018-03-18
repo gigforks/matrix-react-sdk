@@ -454,12 +454,13 @@ module.exports = React.createClass({
                     <div>
                         { header }
                         { errorTextSection }
-                        { this.componentForStep(this.state.currentFlow) }
+                        <a href="/iyo"><h3>Login with itsyou.online</h3></a>
+                        { /* { this.componentForStep(this.state.currentFlow) }
                         { serverConfig }
                         <a className="mx_Login_create" onClick={this.props.onRegisterClick} href="#">
                             { _t('Create an account') }
                         </a>
-                        { loginAsGuestJsx }
+                        { loginAsGuestJsx } */ }
                         { returnToAppJsx }
                         { !SdkConfig.get().disable_login_language_selector ? this._renderLanguageSetting() : '' }
                         <LoginFooter />

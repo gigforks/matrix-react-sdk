@@ -496,3 +496,60 @@ export function stopMatrixClient() {
         MatrixClientPeg.unset();
     }
 }
+
+/**
+ * @param {Object} queryParams    string->string map of the
+ *     query-parameters extracted from the real query-string of the starting
+ *     URI.
+ *
+ * @param {String} defaultDeviceDisplayName
+ *
+ * @returns {Promise} promise which resolves to true if we completed the token
+ *    login, else false
+ */
+export function attemptCaddyOauthLogin(config) {
+    function getCookie(cname) {
+        const name = cname + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for (let i = 0; i <ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    const jwt = getCookie("caddyoauth");
+    if (!jwt) {
+        console.log("JWT NOT FOUJUUJKJSKJSKSJKSJ");
+        return Promise.resolve(false);
+    }
+    console.log(config);
+    if (!config.default_hs_url) {
+        console.warn("Cannot log in with jwt: can't determine HS URL to use");
+        return Promise.resolve(false);
+    }
+    // create a temporary MatrixClient to do the login
+    const client = Matrix.createClient({
+        baseUrl: config.default_hs_url,
+    });
+
+    return client.login(
+        "m.login.jwt", {
+            token: jwt,
+        },
+    ).then((data) => {
+        _doSetLoggedIn({
+            userId: data.user_id,
+            accessToken: data.access_token,
+            homeserverUrl: config.default_hs_url,
+            identityServerUrl: config.default_is_url,
+            guest: false,
+        }, true).then(() => true);
+    });
+}
