@@ -196,34 +196,33 @@ export default class Login {
                 accessToken: data.access_token,
             });
         }).catch((error) => {
-            originalLoginError = error;
-            if (error.httpStatus === 403) {
-                if (self._fallbackHsUrl) {
-                    return tryFallbackHs(originalLoginError);
-                }
-            }
-            throw originalLoginError;
-        }).catch((error) => {
-            // We apparently squash case at login serverside these days:
-            // https://github.com/matrix-org/synapse/blob/1189be43a2479f5adf034613e8d10e3f4f452eb9/synapse/handlers/auth.py#L475
-            // so this wasn't needed after all. Keeping the code around in case the
-            // the situation changes...
+            console.log("Login failed", error);
+            throw error;
+        });
+    }
 
-            /*
-            if (
-                error.httpStatus === 403 &&
-                loginParams.identifier.type === 'm.id.user' &&
-                username.search(/[A-Z]/) > -1
-            ) {
-                return tryLowercaseUsername(originalLoginError);
-            }
-            */
-            throw originalLoginError;
+    loginViaJwt(jwt) {
+        const self = this;
+        console.log("hellloooo", self._hsUrl)
+        // create a temporary MatrixClient to do the login
+        const client = Matrix.createClient({
+            baseUrl: self._hsUrl,
+        });
+    
+        return client.login("m.login.jwt", {token: jwt}).then(function(data) {
+            return Promise.resolve({
+                homeserverUrl: self._hsUrl,
+                identityServerUrl: self._isUrl,
+                userId: data.user_id,
+                deviceId: data.device_id,
+                accessToken: data.access_token,
+            });
         }).catch((error) => {
             console.log("Login failed", error);
             throw error;
         });
     }
+
 
     redirectToCas() {
       const client = this._createTemporaryClient();

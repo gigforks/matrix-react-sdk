@@ -83,7 +83,8 @@ module.exports = React.createClass({
         // map from login step type to a function which will render a control
         // letting you do that login type
         this._stepRendererMap = {
-            'm.login.password': this._renderPasswordStep,
+            'm.login.jwt': this._renderJwtStep,
+            // 'm.login.password': this._renderPasswordStep,
             'm.login.cas': this._renderCasStep,
         };
 
@@ -92,6 +93,24 @@ module.exports = React.createClass({
 
     componentWillUnmount: function() {
         this._unmounted = true;
+    },
+
+    onJwtLogin: function(jwt) {
+        this._loginLogic.loginViaJwt(jwt).then((data) => {
+            this.props.onLoggedIn(data);
+        }, (error) => {
+            if (this._unmounted) {
+                return;
+            }
+            document.cookie = 'caddyoauth=; Path=/;';
+            this.setState({
+                errorText: "Failed to login with itsyouonline JWT",
+            });
+        }).finally(() => {
+            if (this._unmounted) {
+                return;
+            }
+        }).done();        
     },
 
     onPasswordLogin: function(username, phoneCountry, phoneNumber, password) {
@@ -363,10 +382,30 @@ module.exports = React.createClass({
         );
     },
 
-    _renderCasStep: function() {
-        const CasLogin = sdk.getComponent('login.CasLogin');
+    _renderJwtStep: function() {
+        function getCookie(cname) {
+            const name = cname + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+            for (let i = 0; i <ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+    
+        const jwt = getCookie("caddyoauth");
+        if (jwt) {
+            this.onJwtLogin(jwt);
+        }
+    
         return (
-            <CasLogin onSubmit={this.onCasLogin} />
+            <a href="/iyo"><h3>Login with itsyou.online</h3></a>
         );
     },
 
@@ -454,8 +493,8 @@ module.exports = React.createClass({
                     <div>
                         { header }
                         { errorTextSection }
-                        <a href="/iyo"><h3>Login with itsyou.online</h3></a>
-                        { /* { this.componentForStep(this.state.currentFlow) }
+                        { this.componentForStep(this.state.currentFlow) }
+                        { /*
                         { serverConfig }
                         <a className="mx_Login_create" onClick={this.props.onRegisterClick} href="#">
                             { _t('Create an account') }

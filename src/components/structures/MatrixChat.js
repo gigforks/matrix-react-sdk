@@ -314,50 +314,7 @@ export default React.createClass({
         Lifecycle.initRtsClient(teamServerConfig.teamServerURL);
 
         // the first thing to do is to try the token params in the query-string
-        /*Lifecycle.attemptTokenLogin(this.props.realQueryParams).then((loggedIn) => {
-            if (loggedIn) {
-                this.props.onTokenLoginCompleted();
-
-                // don't do anything else until the page reloads - just stay in
-                // the 'loading' state.
-                return;
-            }
-
-            // if the user has followed a login or register link, don't reanimate
-            // the old creds, but rather go straight to the relevant page
-            const firstScreen = this._screenAfterLogin ?
-                this._screenAfterLogin.screen : null;
-
-            if (firstScreen === 'login' ||
-                    firstScreen === 'register' ||
-                    firstScreen === 'forgot_password') {
-                this._showScreenAfterLogin();
-                return;
-            }
-
-            // the extra Promise.resolve() ensures that synchronous exceptions hit the same codepath as
-            // asynchronous ones.
-            return Promise.resolve().then(() => {
-                return Lifecycle.loadSession({
-                    fragmentQueryParams: this.props.startingFragmentQueryParams,
-                    enableGuest: this.props.enableGuest,
-                    guestHsUrl: this.getCurrentHsUrl(),
-                    guestIsUrl: this.getCurrentIsUrl(),
-                    defaultDeviceDisplayName: this.props.defaultDeviceDisplayName,
-                });
-            }).catch((e) => {
-                console.error(`Error attempting to load session: ${e}`);
-                return false;
-            }).then((loadedSession) => {
-                if (!loadedSession) {
-                    // fall back to showing the login screen
-                    dis.dispatch({action: "start_login"});
-                }
-            });
-        }).done();*/
-
-        // the first thing to do is to try the token params in the query-string
-        Lifecycle.attemptCaddyOauthLogin(this.props.config).then((loggedIn) => {
+        Lifecycle.attemptTokenLogin(this.props.realQueryParams).then((loggedIn) => {
             if (loggedIn) {
                 this.props.onTokenLoginCompleted();
 
@@ -398,6 +355,7 @@ export default React.createClass({
                 }
             });
         }).done();
+
     },
 
     componentWillUnmount: function() {
